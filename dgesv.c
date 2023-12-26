@@ -41,8 +41,7 @@ void my_dgesv(int n, double *restrict a, double *restrict b) {
         rowOrder[pivotRow] = temp;
 
         // Swap corresponding rows in the B matrix
-
-        #pragma omp simd
+        #pragma omp simd code_align(8)
         for (j = 0; j < n; j++) {
             double temp_a = a[rowOrder[i] * n + j];
             a[rowOrder[i] * n + j] = a[rowOrder[pivotRow] * n + j];
@@ -50,8 +49,7 @@ void my_dgesv(int n, double *restrict a, double *restrict b) {
         }
 
         // Swap rows in the B matrix using the same pivot order
-
-        #pragma omp simd
+        #pragma omp simd code_align(8)
         for (j = 0; j < n; j++) {
             double temp_b = a[rowOrder[i] * n + j];
             b[rowOrder[i] * n + j] = b[rowOrder[pivotRow] * n + j];
