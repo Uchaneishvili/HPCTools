@@ -15,8 +15,6 @@ void my_dgesv(int n, double *a, double *b) {
     double scalingFactor;
 
 
-    double* _a = (double*) __builtin_assume_aligned(a, _NUM);
-    double* _b = (double*) __builtin_assume_aligned(b, _NUM);
 
     // Array to store the pivot order    
     int *rowOrder = (int *)malloc(n * sizeof(int));
@@ -47,34 +45,38 @@ void my_dgesv(int n, double *a, double *b) {
 
         // Swap corresponding rows in the B matrix
 
-        #pragma omp simd aligned(a:_NUM)
+        #pragma vector always
+        #pragma loop count (n)
         for (j = 0; j < n; j++) {
             double temp_a = a[rowOrder[i] * n + j];
-            _a[rowOrder[i] * n + j] = _a[rowOrder[pivotRow] * n + j];
-            _a[rowOrder[pivotRow] * n + j] = temp_a;
+            a[rowOrder[i] * n + j] = a[rowOrder[pivotRow] * n + j];
+            a[rowOrder[pivotRow] * n + j] = temp_a;
         }
 
         // Swap rows in the B matrix using the same pivot order
 
-        #pragma omp simd aligned(b:_NUM)
+        #pragma vector always
+        #pragma loop count (n)
         for (j = 0; j < n; j++) {
             double temp_b = a[rowOrder[i] * n + j];
-            _b[rowOrder[i] * n + j] = _b[rowOrder[pivotRow] * n + j];
-            _b[rowOrder[pivotRow] * n + j] = temp_b;
+            b[rowOrder[i] * n + j] = b[rowOrder[pivotRow] * n + j];
+            b[rowOrder[pivotRow] * n + j] = temp_b;
         }
 
         scalingFactor = a[rowOrder[i] * n + i];
 
 
-        #pragma omp simd aligned(a:_NUM)
+        #pragma vector always
+        #pragma loop count (n)
         for (j = i; j < n; j++) {
-            _a[rowOrder[i] * n + j] /= scalingFactor;
+            a[rowOrder[i] * n + j] /= scalingFactor;
         }
 
 
-        #pragma omp simd aligned(b:_NUM)
+        #pragma vector always
+        #pragma loop count (n)
         for (j = 0; j < n; j++) {
-            _b[rowOrder[i] * n + j] /= scalingFactor;
+            b[rowOrder[i] * n + j] /= scalingFactor;
         }
 
         // Eliminate other rows using the pivot row
@@ -82,14 +84,18 @@ void my_dgesv(int n, double *a, double *b) {
             if (k != i) {
                 scalingFactor = a[rowOrder[k] * n + i];
 
-                #pragma omp simd aligned(a:_NUM)
+
+                #pragma vector always
+                #pragma loop count (n)
                 for (j = i; j < n; j++) {
-                    _a[rowOrder[k] * n + j] -= scalingFactor * _a[rowOrder[i] * n + j];
+                    a[rowOrder[k] * n + j] -= scalingFactor * a[rowOrder[i] * n + j];
                 }
 
-                #pragma omp simd aligned(b:_NUM)
+
+                #pragma vector always
+                #pragma loop count (n)
                 for (j = 0; j < n; j++) {
-                    _b[rowOrder[k] * n + j] -= scalingFactor * _b[rowOrder[i] * n + j];
+                    b[rowOrder[k] * n + j] -= scalingFactor * b[rowOrder[i] * n + j];
                 }
             }
         }
