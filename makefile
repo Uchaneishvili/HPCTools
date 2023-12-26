@@ -15,3 +15,6 @@ dgesv: dgesv.o timer.o main.o
 
 clean:
 	$(RM) dgesv *.o *~
+
+run:
+	./dgesv $(SIZE)

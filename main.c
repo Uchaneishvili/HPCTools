@@ -11,7 +11,7 @@
 
 double *generate_matrix(unsigned int size, unsigned int seed)
 {
-  unsigned int i; 
+  unsigned int i;
   double *matrix = (double *) malloc(sizeof(double) * size * size);
 
   srand(seed);
@@ -51,13 +51,20 @@ unsigned int check_result(double *bref, double *b, unsigned int size)
   return 1;
 }
 
+void print_matrix(double *matrix, int rows, int cols)
+{
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            printf("%.2f ", matrix[i * cols + j]);
+        }
+        printf("\n");
+    }
+}
+
 int main(int argc, char *argv[])
 {
-  if (argc < 2) {
-    printf("You need to provide a matrix size (e.g. 1024 for use 1024x1024 matrices)\n");
-
-    return 1;
-  }
 
   int size = atoi(argv[1]);
 
@@ -85,15 +92,22 @@ int main(int argc, char *argv[])
   printf("Time taken by Lapacke dgesv: %ld ms\n", diff_milli(&start, &now));
 
 
+  printf("\nResults from LAPACK:\n");
+  print_matrix(bref, size, size);
+
   //
   // Using your own solver based on Gauss or Gauss-Jordan elimination
   //
+
   timestamp(&start);
 
-  info = my_dgesv(n, nrhs, a, b /* add/change the parameters according to your implementation needs */);
+  my_dgesv(n,a, b);
 
   timestamp(&now);
   printf("Time taken by my dgesv solver: %ld ms\n", diff_milli(&start, &now));
+
+  printf("\nResults from my_dgesv:\n");
+  print_matrix(b, size, size);
 
   if (check_result(bref, b, size) == 1)
     printf("Result is ok!\n");
