@@ -114,5 +114,13 @@ int main(int argc, char *argv[])
   else
     printf("Result is wrong!\n");
 
+
+
+  free(a);
+  free(aref);
+  free(bref);
+  free(b);
+  free(ipiv);
+  
   return 0;
 }
